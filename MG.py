@@ -26,12 +26,15 @@ class Agent():
         # NOTE:
         #   an int in [0,2^(2^m)] corresponds to a specific strategy.
         #   This is the same trick used in the celluar automata.
-        _strategy_tmp = choice(int(exp2(exp2(nmem))), nstrategy, False)
+        # _strategy_tmp = set(choose_int(2**(2**nmem), nstrategy))
         #
         # convert strategy int to ASCII string:
-        # ''.format() converts hex number to bin string with unified length
-        _fmt_str = '{0:0%db}'%int(exp2(nmem))
-        self.Strategy_Array = array([_fmt_str.format(x) for x in _strategy_tmp])
+        ## ''.format() converts hex number to bin string with unified length
+        ##_fmt_str = '{0:0%db}'%(2**nmem)
+        ##self.Strategy_Array = array([_fmt_str.format(x) for x in _strategy_tmp])
+        #due to the limitation of int/int64 length, we define string directly::
+        self.Strategy_Array = [''.join([str(randint(2)) for _ in range(2**nmem)])
+                                  for _ in range(nstrategy)]
         # how many times this strategy would win
         self.Strategy_Score = zeros([len(self.Strategy_Array)])
         #
@@ -45,7 +48,8 @@ class Agent():
         # now choose the best strategy,  and set self.tstate
         maxscore = max(self.Strategy_Score)
         for self.tstate,x in enumerate(self.Strategy_Score):
-            if x == maxscore: break
+            if x == maxscore:
+                break
         #
         cur_stratg = self.Strategy_Array[self.tstate]
         self.lstact = int(cur_stratg[mstate], 2)
@@ -62,11 +66,11 @@ class Agent():
             self.Strategy_Score[i] += dscore
 
 
-class Field():
+class World():
     def __init__(self, nagent=1000, nstep=1000, nmem=4, nstrategy=100):
         self.nstrategy = nstrategy # number of strategies for each user
         self.nmem = nmem # memory length
-        self.mem = choice(int(exp2(self.nmem)))  # info before runing!
+        self.mem = randint(2**self.nmem)  # info before runing!
         # new info is stored in the lowest/right bit
         self.nstep = nstep # number of steps in this launch/run
         self.nagent = nagent # number of Agents
@@ -88,7 +92,7 @@ class Field():
             self.winner = 1 if total_action<0.5*self.nagent else 0
             self.win_hist.append(self.winner)
             self.mem_hist.append(self.mem)
-            self.mem = mod(self.mem*2 + self.winner, int(exp2(self.nmem)))
+            self.mem = mod(self.mem*2 + self.winner, 2**self.nmem)
             #
             # account-clearance:
             for agt in self.agents:
