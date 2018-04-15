@@ -7,7 +7,7 @@
 #  ·
 #  · Albert.mj.wang@gmail.com
 #  ·
-#  · Filename: main.py
+#  · Filename: MG.py
 #  ·
 #  · COPYRIGHT 2018
 #  ·
@@ -29,10 +29,11 @@ class Agent():
         _strategy_tmp = choice(int(exp2(exp2(nmem))), nstrategy, False)
         #
         # convert strategy int to ASCII string:
-        # bin() converts hex number to bin string leaded by '0b---'
-        self._Strategy_Array = array([bin(x)[2:] for x in _strategy_tmp])
+        # ''.format() converts hex number to bin string with unified length
+        _fmt_str = '{0:0%db}'%int(exp2(nmem))
+        self.Strategy_Array = array([_fmt_str.format(x) for x in _strategy_tmp])
         # how many times this strategy would win
-        self._Strategy_Score = zeros([len(self._Strategy_Array)])
+        self.Strategy_Score = zeros([len(self.Strategy_Array)])
         #
         self.tstate = 0  # which strategy this Agent use now
         self.lstact = 0  # action this Agent took at the previous iteration
@@ -42,15 +43,12 @@ class Agent():
     def action(self, mstate):
         # mstate: state of memory
         # now choose the best strategy,  and set self.tstate
-        maxscore = max(self._Strategy_Score)
-        for self.tstate,x in enumerate(self._Strategy_Score):
+        maxscore = max(self.Strategy_Score)
+        for self.tstate,x in enumerate(self.Strategy_Score):
             if x == maxscore: break
         #
-        cur_stratg = self._Strategy_Array[self.tstate]
-        if mstate >= len(cur_stratg):
-            self.lstact = 0 # bin() cuts the length of strategy
-        else:
-            self.lstact = int(cur_stratg[mstate], 2)
+        cur_stratg = self.Strategy_Array[self.tstate]
+        self.lstact = int(cur_stratg[mstate], 2)
         return self.lstact
 
 
@@ -59,19 +57,16 @@ class Agent():
         self.wtimes += int(self.lstact == wstate)
         # update score of each strategy,
         # according to its lose/win at this iteration:
-        for i,x in enumerate(self._Strategy_Array):
-            if mstate >= len(x):
-                dscore = int(0 == wstate) # T:1, F:0
-            else:
-                dscore = int(x[mstate] == wstate)
-            self._Strategy_Score[i] += dscore
+        for i,x in enumerate(self.Strategy_Array):
+            dscore = int(x[mstate] == wstate)
+            self.Strategy_Score[i] += dscore
 
 
 class Field():
     def __init__(self, nagent=1000, nstep=1000, nmem=4, nstrategy=100):
         self.nstrategy = nstrategy # number of strategies for each user
         self.nmem = nmem # memory length
-        self.mem = choice(int(exp2(self.nmem)))  # info before iteration
+        self.mem = choice(int(exp2(self.nmem)))  # info before runing!
         # new info is stored in the lowest/right bit
         self.nstep = nstep # number of steps in this launch/run
         self.nagent = nagent # number of Agents
