@@ -7,4 +7,6 @@ wld.run()
 print(datetime_str())
 
 plot(wld.mem_hist)
+savefig('1W-100-15-100.jpg')
+#clf()
 show()

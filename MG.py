@@ -24,17 +24,13 @@ class Agent():
     def __init__(self, nmem=4, nstrategy=100):
         # choose strategies for this Agent (chose without placeback):
         # NOTE:
-        #   an int in [0,2^(2^m)] corresponds to a specific strategy.
-        #   This is the same trick used in the celluar automata.
-        # _strategy_tmp = set(choose_int(2**(2**nmem), nstrategy))
+        #   a string with length 2^m corresponds to a specific strategy.
+        #   This is the similar trick used in Wolframe celluar automata.
+        self.Strategy_Array = list(set([
+                                ''.join(str(randint(2)) for _ in range(2**nmem))
+                                for _ in range(nstrategy)
+                                ]))
         #
-        # convert strategy int to ASCII string:
-        ## ''.format() converts hex number to bin string with unified length
-        ##_fmt_str = '{0:0%db}'%(2**nmem)
-        ##self.Strategy_Array = array([_fmt_str.format(x) for x in _strategy_tmp])
-        #due to the limitation of int/int64 length, we define string directly::
-        self.Strategy_Array = [''.join([str(randint(2)) for _ in range(2**nmem)])
-                                  for _ in range(nstrategy)]
         # how many times this strategy would win
         self.Strategy_Score = zeros([len(self.Strategy_Array)])
         #
@@ -47,8 +43,12 @@ class Agent():
         # mstate: state of memory
         # now choose the best strategy,  and set self.tstate
         maxscore = max(self.Strategy_Score)
-        for self.tstate,x in enumerate(self.Strategy_Score):
-            if x == maxscore:
+        #  avoid always using the 1st highest score strategy
+        idx = rlen(self.Strategy_Score)
+        shuffle(idx)
+        for i in idx:
+            if self.Strategy_Score[i] == maxscore:
+                self.tstate = i
                 break
         #
         cur_stratg = self.Strategy_Array[self.tstate]
@@ -62,7 +62,7 @@ class Agent():
         # update score of each strategy,
         # according to its lose/win at this iteration:
         for i,x in enumerate(self.Strategy_Array):
-            dscore = int(x[mstate] == wstate)
+            dscore = sign(int(x[mstate] == wstate)-0.5) # 0,1 -> -1,1
             self.Strategy_Score[i] += dscore
 
 
