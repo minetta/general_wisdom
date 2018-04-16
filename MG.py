@@ -70,30 +70,36 @@ class World():
     def __init__(self, nagent=1000, nstep=1000, nmem=4, nstrategy=100):
         self.nstrategy = nstrategy # number of strategies for each user
         self.nmem = nmem # memory length
-        self.mem = randint(2**self.nmem)  # info before runing!
+        self.mstate = randint(2**self.nmem)  # info before runing!
         # new info is stored in the lowest/right bit
         self.nstep = nstep # number of steps in this launch/run
         self.nagent = nagent # number of Agents
         self.agents = [Agent(self.nmem, self.nstrategy)
                         for _ in range(self.nagent)] #initialize Agents
-        self.winner = 0 # which group wins at this iteration?
-        self.win_hist = [] # record winner at each iteration
-        self.mem_hist = [] # record memory at each iteration
-
+        self.wstate = 0 # which group wins at this iteration?
+        self.wstate_hist = [] # record winned state (action) at each iteration
+        self.mstate_hist = [] # record memory (01 bits) at each iteration
+        self.ACTION_hist = [] # record total action at each iteration
+        self.prices_hist = [0] # record prices at each iteration
 
     def run(self):
         for stp in range(self.nstep):
             # collect ask and bids:
             total_action = 0
             for agt in self.agents:
-                total_action += agt.action(self.mem)
+                total_action += agt.action(self.mstate)
             #
             # dealmaking & updating:
-            self.winner = 1 if total_action<0.5*self.nagent else 0
-            self.win_hist.append(self.winner)
-            self.mem_hist.append(self.mem)
-            self.mem = mod(self.mem*2 + self.winner, 2**self.nmem)
+            self.wstate = 1 if total_action<0.5*self.nagent else 0
+            self.wstate_hist.append(self.wstate)
+            self.ACTION_hist.append(total_action)
+            self.prices_hist.append(
+                    self.prices_hist[-1] +
+                    sign(self.wstate-0.5)*(total_action/self.nagent)
+                    ) # update the price
+            self.mstate_hist.append(self.mstate)
+            self.mstate = mod(self.mstate*2 + self.wstate, 2**self.nmem)
             #
             # account-clearance:
             for agt in self.agents:
-                agt.update(self.mem, self.winner)
+                agt.update(self.mstate, self.wstate)
