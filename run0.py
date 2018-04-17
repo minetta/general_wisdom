@@ -25,3 +25,8 @@ title('ACTION state: $\mu=%f, \sigma=%f$'%(mu, sigma))
 savefig('run0.jpg')
 show()
 clf()
+
+savetxt('run0_mstate_hist.txt', array(wld.mstate_hist))
+savetxt('run0_wstate_hist.txt', array(wld.wstate_hist))
+savetxt('run0_ACTION_hist.txt', array(wld.ACTION_hist))
+savetxt('run0_prices_hist.txt', array(wld.prices_hist))
